@@ -140,230 +140,240 @@ class _NewPasswordStepState extends State<NewPasswordStep> {
   Widget build(BuildContext context) {
     return Form(
       key: _formKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Header
-          Row(
-            children: [
-              IconButton(
-                onPressed: widget.isLoading ? null : widget.onBackPressed,
-                icon: CustomIconWidget(
-                  iconName: 'arrow_back',
-                  color: AppTheme.lightTheme.colorScheme.onSurface,
-                  size: 6.w,
-                ),
-              ),
-              Expanded(
-                child: Text(
-                  'Nueva Contraseña',
-                  style: AppTheme.lightTheme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.lightTheme.colorScheme.onSurface,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              SizedBox(width: 12.w), // Balance the back button
-            ],
-          ),
-          SizedBox(height: 2.h),
-
-          // Description
-          Text(
-            'Crea una nueva contraseña segura para tu cuenta. Asegúrate de que cumpla con todos los requisitos.',
-            style: AppTheme.lightTheme.textTheme.bodyMedium?.copyWith(
-              color: AppTheme.lightTheme.colorScheme.onSurfaceVariant,
-              height: 1.4,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          SizedBox(height: 4.h),
-
-          // New password field
-          TextFormField(
-            controller: _passwordController,
-            obscureText: !_isPasswordVisible,
-            enabled: !widget.isLoading,
-            validator: _validatePasswordField,
-            decoration: InputDecoration(
-              labelText: 'Nueva Contraseña',
-              hintText: 'Ingresa tu nueva contraseña',
-              prefixIcon: Padding(
-                padding: EdgeInsets.all(3.w),
-                child: CustomIconWidget(
-                  iconName: 'lock',
-                  color: AppTheme.lightTheme.colorScheme.onSurfaceVariant,
-                  size: 6.w,
-                ),
-              ),
-              suffixIcon: IconButton(
-                onPressed: () {
-                  setState(() {
-                    _isPasswordVisible = !_isPasswordVisible;
-                  });
-                },
-                icon: CustomIconWidget(
-                  iconName: _isPasswordVisible
-                      ? 'visibility_off'
-                      : 'visibility',
-                  color: AppTheme.lightTheme.colorScheme.onSurfaceVariant,
-                  size: 6.w,
-                ),
-              ),
-            ),
-          ),
-          SizedBox(height: 2.h),
-
-          // Password strength indicator
-          if (_passwordController.text.isNotEmpty) ...[
+      child: SingleChildScrollView(
+        padding: EdgeInsets.only(
+          bottom:
+              MediaQuery.of(context).viewInsets.bottom +
+              16, // evita overflow con teclado
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Header
             Row(
               children: [
-                Text(
-                  'Fortaleza: ',
-                  style: AppTheme.lightTheme.textTheme.bodySmall?.copyWith(
-                    color: AppTheme.lightTheme.colorScheme.onSurfaceVariant,
+                IconButton(
+                  onPressed: widget.isLoading ? null : widget.onBackPressed,
+                  icon: CustomIconWidget(
+                    iconName: 'arrow_back',
+                    color: AppTheme.lightTheme.colorScheme.onSurface,
+                    size: 6.w,
                   ),
                 ),
-                Text(
-                  _getStrengthText(),
-                  style: AppTheme.lightTheme.textTheme.bodySmall?.copyWith(
-                    color: _getStrengthColor(),
-                    fontWeight: FontWeight.w600,
+                Expanded(
+                  child: Text(
+                    'Nueva Contraseña',
+                    style: AppTheme.lightTheme.textTheme.headlineSmall
+                        ?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.lightTheme.colorScheme.onSurface,
+                        ),
+                    textAlign: TextAlign.center,
                   ),
                 ),
+                SizedBox(width: 12.w), // Balance del botón atrás
               ],
-            ),
-            SizedBox(height: 1.h),
-            LinearProgressIndicator(
-              value:
-                  [
-                    _hasMinLength,
-                    _hasUppercase,
-                    _hasLowercase,
-                    _hasNumber,
-                    _hasSpecialChar,
-                  ].where((condition) => condition).length /
-                  5,
-              backgroundColor: AppTheme.lightTheme.colorScheme.outline
-                  .withValues(alpha: 0.3),
-              valueColor: AlwaysStoppedAnimation<Color>(_getStrengthColor()),
             ),
             SizedBox(height: 2.h),
-          ],
 
-          // Password requirements
-          Container(
-            padding: EdgeInsets.all(4.w),
-            decoration: BoxDecoration(
-              color: AppTheme.lightTheme.colorScheme.surface,
-              borderRadius: BorderRadius.circular(2.w),
-              border: Border.all(
-                color: AppTheme.lightTheme.colorScheme.outline.withValues(
-                  alpha: 0.3,
-                ),
+            // Descripción
+            Text(
+              'Crea una nueva contraseña segura para tu cuenta. Asegúrate de que cumpla con todos los requisitos.',
+              style: AppTheme.lightTheme.textTheme.bodyMedium?.copyWith(
+                color: AppTheme.lightTheme.colorScheme.onSurfaceVariant,
+                height: 1.4,
               ),
+              textAlign: TextAlign.center,
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Requisitos de la contraseña:',
-                  style: AppTheme.lightTheme.textTheme.bodySmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.lightTheme.colorScheme.onSurface,
+            SizedBox(height: 4.h),
+
+            // Campo de nueva contraseña
+            TextFormField(
+              controller: _passwordController,
+              obscureText: !_isPasswordVisible,
+              enabled: !widget.isLoading,
+              validator: _validatePasswordField,
+              decoration: InputDecoration(
+                labelText: 'Nueva Contraseña',
+                hintText: 'Ingresa tu nueva contraseña',
+                prefixIcon: Padding(
+                  padding: EdgeInsets.all(3.w),
+                  child: CustomIconWidget(
+                    iconName: 'lock',
+                    color: AppTheme.lightTheme.colorScheme.onSurfaceVariant,
+                    size: 6.w,
                   ),
                 ),
-                SizedBox(height: 1.h),
-                _buildRequirement('Al menos 8 caracteres', _hasMinLength),
-                _buildRequirement('Una letra mayúscula', _hasUppercase),
-                _buildRequirement('Una letra minúscula', _hasLowercase),
-                _buildRequirement('Un número', _hasNumber),
-                _buildRequirement(
-                  'Un carácter especial (!@#\$%^&*)',
-                  _hasSpecialChar,
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: 3.h),
-
-          // Confirm password field
-          TextFormField(
-            controller: _confirmPasswordController,
-            obscureText: !_isConfirmPasswordVisible,
-            enabled: !widget.isLoading,
-            validator: _validateConfirmPasswordField,
-            decoration: InputDecoration(
-              labelText: 'Confirmar Contraseña',
-              hintText: 'Confirma tu nueva contraseña',
-              prefixIcon: Padding(
-                padding: EdgeInsets.all(3.w),
-                child: CustomIconWidget(
-                  iconName: 'lock',
-                  color: AppTheme.lightTheme.colorScheme.onSurfaceVariant,
-                  size: 6.w,
+                suffixIcon: IconButton(
+                  onPressed: () {
+                    setState(() {
+                      _isPasswordVisible = !_isPasswordVisible;
+                    });
+                  },
+                  icon: CustomIconWidget(
+                    iconName: _isPasswordVisible
+                        ? 'visibility_off'
+                        : 'visibility',
+                    color: AppTheme.lightTheme.colorScheme.onSurfaceVariant,
+                    size: 6.w,
+                  ),
                 ),
               ),
-              suffixIcon: Row(
-                mainAxisSize: MainAxisSize.min,
+            ),
+            SizedBox(height: 2.h),
+
+            // Indicador de fortaleza
+            if (_passwordController.text.isNotEmpty) ...[
+              Row(
                 children: [
-                  if (_passwordsMatch &&
-                      _confirmPasswordController.text.isNotEmpty)
-                    Padding(
-                      padding: EdgeInsets.only(right: 2.w),
-                      child: CustomIconWidget(
-                        iconName: 'check_circle',
-                        color: AppTheme.lightTheme.colorScheme.primary,
-                        size: 5.w,
-                      ),
-                    ),
-                  IconButton(
-                    onPressed: () {
-                      setState(() {
-                        _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
-                      });
-                    },
-                    icon: CustomIconWidget(
-                      iconName: _isConfirmPasswordVisible
-                          ? 'visibility_off'
-                          : 'visibility',
+                  Text(
+                    'Fortaleza: ',
+                    style: AppTheme.lightTheme.textTheme.bodySmall?.copyWith(
                       color: AppTheme.lightTheme.colorScheme.onSurfaceVariant,
-                      size: 6.w,
+                    ),
+                  ),
+                  Text(
+                    _getStrengthText(),
+                    style: AppTheme.lightTheme.textTheme.bodySmall?.copyWith(
+                      color: _getStrengthColor(),
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
               ),
-            ),
-          ),
-          SizedBox(height: 4.h),
+              SizedBox(height: 1.h),
+              LinearProgressIndicator(
+                value:
+                    [
+                      _hasMinLength,
+                      _hasUppercase,
+                      _hasLowercase,
+                      _hasNumber,
+                      _hasSpecialChar,
+                    ].where((c) => c).length /
+                    5,
+                backgroundColor: AppTheme.lightTheme.colorScheme.outline
+                    .withValues(alpha: 0.3),
+                valueColor: AlwaysStoppedAnimation<Color>(_getStrengthColor()),
+              ),
+              SizedBox(height: 2.h),
+            ],
 
-          // Submit button
-          SizedBox(
-            height: 6.h,
-            child: ElevatedButton(
-              onPressed: _canSubmit ? _handleSubmit : null,
-              child: widget.isLoading
-                  ? SizedBox(
-                      height: 5.w,
-                      width: 5.w,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          AppTheme.lightTheme.colorScheme.onPrimary,
+            // Requisitos
+            Container(
+              padding: EdgeInsets.all(4.w),
+              decoration: BoxDecoration(
+                color: AppTheme.lightTheme.colorScheme.surface,
+                borderRadius: BorderRadius.circular(2.w),
+                border: Border.all(
+                  color: AppTheme.lightTheme.colorScheme.outline.withValues(
+                    alpha: 0.3,
+                  ),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Requisitos de la contraseña:',
+                    style: AppTheme.lightTheme.textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.lightTheme.colorScheme.onSurface,
+                    ),
+                  ),
+                  SizedBox(height: 1.h),
+                  _buildRequirement('Al menos 8 caracteres', _hasMinLength),
+                  _buildRequirement('Una letra mayúscula', _hasUppercase),
+                  _buildRequirement('Una letra minúscula', _hasLowercase),
+                  _buildRequirement('Un número', _hasNumber),
+                  _buildRequirement(
+                    'Un carácter especial (!@#\$%^&*)',
+                    _hasSpecialChar,
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 3.h),
+
+            // Confirmar contraseña
+            TextFormField(
+              controller: _confirmPasswordController,
+              obscureText: !_isConfirmPasswordVisible,
+              enabled: !widget.isLoading,
+              validator: _validateConfirmPasswordField,
+              decoration: InputDecoration(
+                labelText: 'Confirmar Contraseña',
+                hintText: 'Confirma tu nueva contraseña',
+                prefixIcon: Padding(
+                  padding: EdgeInsets.all(3.w),
+                  child: CustomIconWidget(
+                    iconName: 'lock',
+                    color: AppTheme.lightTheme.colorScheme.onSurfaceVariant,
+                    size: 6.w,
+                  ),
+                ),
+                suffixIcon: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (_passwordsMatch &&
+                        _confirmPasswordController.text.isNotEmpty)
+                      Padding(
+                        padding: EdgeInsets.only(right: 2.w),
+                        child: CustomIconWidget(
+                          iconName: 'check_circle',
+                          color: AppTheme.lightTheme.colorScheme.primary,
+                          size: 5.w,
                         ),
                       ),
-                    )
-                  : Text(
-                      'Restablecer Contraseña',
-                      style: AppTheme.lightTheme.textTheme.labelLarge?.copyWith(
-                        color: AppTheme.lightTheme.colorScheme.onPrimary,
-                        fontWeight: FontWeight.w600,
+                    IconButton(
+                      onPressed: () {
+                        setState(() {
+                          _isConfirmPasswordVisible =
+                              !_isConfirmPasswordVisible;
+                        });
+                      },
+                      icon: CustomIconWidget(
+                        iconName: _isConfirmPasswordVisible
+                            ? 'visibility_off'
+                            : 'visibility',
+                        color: AppTheme.lightTheme.colorScheme.onSurfaceVariant,
+                        size: 6.w,
                       ),
                     ),
+                  ],
+                ),
+              ),
             ),
-          ),
-        ],
+            SizedBox(height: 4.h),
+
+            // Botón
+            SizedBox(
+              height: 6.h,
+              child: ElevatedButton(
+                onPressed: _canSubmit ? _handleSubmit : null,
+                child: widget.isLoading
+                    ? SizedBox(
+                        height: 5.w,
+                        width: 5.w,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            AppTheme.lightTheme.colorScheme.onPrimary,
+                          ),
+                        ),
+                      )
+                    : Text(
+                        'Restablecer Contraseña',
+                        style: AppTheme.lightTheme.textTheme.labelLarge
+                            ?.copyWith(
+                              color: AppTheme.lightTheme.colorScheme.onPrimary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                      ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
