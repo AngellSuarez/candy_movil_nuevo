@@ -60,7 +60,19 @@ class _LoginScreenState extends State<LoginScreen>
           ),
         );
 
-        Navigator.pushReplacementNamed(context, '/news-feed');
+        // Redirección según el rol
+        final userRole = authProvider
+            .userRole; // Asegúrate de que AuthProvider exponga el rol
+        if (userRole == 'Admin' || userRole == 'Administrador') {
+          Navigator.pushReplacementNamed(context, '/admin-dashboard');
+        } else if (userRole == 'Cliente') {
+          Navigator.pushReplacementNamed(context, '/cliente-dashboard');
+        } else if (userRole == 'Manicurista') {
+          Navigator.pushReplacementNamed(context, '/manicurista-dashboard');
+        } else {
+          // Rol desconocido, redirigir a una pantalla por defecto
+          Navigator.pushReplacementNamed(context, '/news-feed');
+        }
       }
     } else {
       if (mounted) {
