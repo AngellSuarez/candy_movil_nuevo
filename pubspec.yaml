@@ -43,6 +43,9 @@ dependencies:
   connectivity_plus: ^6.1.5
   local_auth: ^2.3.0
   fluttertoast: ^8.2.12
+  fl_chart: ^1.0.0
+  cached_network_image: ^3.4.1
+  time_range_picker: ^2.3.1
 
 dev_dependencies:
   flutter_test:
