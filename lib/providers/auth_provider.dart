@@ -2,6 +2,14 @@ import 'package:flutter/material.dart';
 import '../services/auth/auth_service.dart';
 
 class AuthProvider with ChangeNotifier {
+  // Devuelve el rol del usuario autenticado, si está disponible
+  String? get userRole {
+    if (_user != null && _user!['rol'] != null) {
+      return _user!['rol'] as String;
+    }
+    return null;
+  }
+
   final AuthService _authService = AuthService();
 
   Map<String, dynamic>? _user;
