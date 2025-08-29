@@ -9,6 +9,9 @@ import 'theme/app_theme.dart';
 import 'screens/adminDashboard/admin_dashboard.dart';
 import 'screens/adminDashboard/novedades_admin.dart';
 import 'screens/novedades/crear_novedades.dart';
+import 'screens/manejoServicios/crear_servicio.dart';
+import 'screens/manejoServicios/editar_servicio.dart';
+import 'screens/manejoServicios/manejo_servicios.dart';
 
 void main() {
   runApp(const MyApp());
@@ -39,6 +42,8 @@ class MyApp extends StatelessWidget {
                   const PlaceholderScreen(title: 'Manicurista Dashboard'),
               '/novedades_admin': (_) => const NovedadesAdminPage(),
               '/crear_novedad': (_) => const CrearNovedadPage(),
+              '/crear_servicio': (_) => const CrearServicioPage(),
+              '/servicios_admin': (_) => const ServiciosAdminPage(),
             },
           );
         },
