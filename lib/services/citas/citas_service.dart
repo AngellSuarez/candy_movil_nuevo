@@ -29,69 +29,61 @@ class CitasService {
     return List<Map<String, dynamic>>.from(response.data);
   }
 
-  //obtener citas por manicurista
+  // obtener citas por manicurista
   Future<List<Map<String, dynamic>>> obtenerCitasManicurista(
     int manicuristaId,
   ) async {
     final headers = await _getHeaders();
     final response = await _dio.get(
-      '$baseUrl/?manicurista_id=$manicuristaId/',
+      '$baseUrl?manicurista_id=$manicuristaId',
       options: Options(headers: headers),
     );
     return List<Map<String, dynamic>>.from(response.data);
   }
 
-  //citas por cliente
-  Future<List<Map<String, dynamic>>> obtenerCitasCliente(int clienteId) async {
+  // citas por cliente
+  Future<List<Map<String, dynamic>>> obtenerCitasPorCliente(
+    int clienteId,
+  ) async {
     final headers = await _getHeaders();
     final response = await _dio.get(
-      '$baseUrl/?cliente_id=$clienteId/',
+      '$baseUrl?cliente_id=$clienteId',
       options: Options(headers: headers),
     );
     return List<Map<String, dynamic>>.from(response.data);
   }
 
-  //detalles de cita
+  // obtener detalles de una cita
   Future<Map<String, dynamic>> obtenerDetallesCita(int id) async {
     final headers = await _getHeaders();
-    final urlCita = '$baseUrl$id/';
-    final urlServicios =
-        'https://angelsuarez.pythonanywhere.com/api/cita-venta/servicios-cita/?cita_id=$id';
+    final response = await _dio.get(
+      '$baseUrl$id/',
+      options: Options(headers: headers),
+    );
+    return Map<String, dynamic>.from(response.data);
+  }
 
+  Future<List<Map<String, dynamic>>> obtenerServiciosDeCita(int citaId) async {
+    final headers = await _getHeaders();
+    final url =
+        'https://angelsuarez.pythonanywhere.com/api/cita-venta/servicios-cita/';
     try {
-      // Petición para obtener los detalles de la cita
-      final responseCita = await _dio.get(
-        urlCita,
+      final response = await _dio.get(
+        url,
+        queryParameters: {'cita_id': citaId},
         options: Options(headers: headers),
       );
-      Map<String, dynamic> citaData = Map<String, dynamic>.from(
-        responseCita.data,
-      );
-
-      // Petición para obtener los servicios de la cita
-      final responseServicios = await _dio.get(
-        urlServicios,
-        options: Options(headers: headers),
-      );
-      List<Map<String, dynamic>> serviciosData =
-          List<Map<String, dynamic>>.from(responseServicios.data);
-
-      // Combinar los datos en un solo mapa
-      citaData['servicios'] = serviciosData;
-
-      return citaData;
-    } on DioException catch (e) {
-      if (e.response != null) {
-        throw Exception(
-          'Error al obtener los detalles de la cita: ${e.response?.statusCode}',
-        );
+      if (response.statusCode == 200) {
+        return List<Map<String, dynamic>>.from(response.data);
       } else {
-        throw Exception('Error de red: ${e.message}');
+        throw Exception('Error al obtener servicios: ${response.statusCode}');
       }
+    } catch (e) {
+      throw Exception('Error de red o servidor: $e');
     }
   }
 
-  //crear citas - agregar servicios en batch
+  // crear nueva cita
   Future<Map<String, dynamic>> crearCita(Map<String, dynamic> data) async {
     final headers = await _getHeaders();
     final response = await _dio.post(
@@ -99,14 +91,10 @@ class CitasService {
       data: data,
       options: Options(headers: headers),
     );
-
-    if (response.statusCode == 201) {
-      return response.data;
-    } else {
-      throw Exception('Error al crear la cita: ${response.data}');
-    }
+    return Map<String, dynamic>.from(response.data);
   }
 
+  // crear servicios a una cita (batch)
   Future<void> agregarServicioCitaBatch(
     List<Map<String, dynamic>> serviciosData,
   ) async {
@@ -114,13 +102,19 @@ class CitasService {
     final urlServicios =
         'https://angelsuarez.pythonanywhere.com/api/cita-venta/servicios-cita/batch/';
 
+    print('Payload a enviar en batch: $serviciosData');
+
     final response = await _dio.post(
       urlServicios,
       data: serviciosData,
       options: Options(headers: headers),
     );
 
-    if (response.statusCode != 201 || response.statusCode != 200) {
+    print(
+      'Respuesta de la API de batch: ${response.statusCode} - ${response.data}',
+    );
+
+    if (response.statusCode != 201 && response.statusCode != 200) {
       throw Exception('Error al agregar servicios en batch: ${response.data}');
     }
   }
@@ -134,23 +128,22 @@ class CitasService {
   }
 
   //horas - horarios disponibles
-
-  Future<List<String>> getHorariosNovedades({
+  Future<List<String>> getHorasDisponibles({
     required int manicuristaId,
     required String fecha,
   }) async {
     final headers = await _getHeaders();
-    final response = await _dio.post(
-      'https://angelsuarez.pythonanywhere.com/api/manicurista/novedades/horarios-disponibles/',
-      data: {"manicurista_id": manicuristaId, "fecha": fecha},
+    final response = await _dio.get(
+      'https://angelsuarez.pythonanywhere.com/api/cita-venta/citas-venta/horas-disponibles/',
+      queryParameters: {"manicurista_id": manicuristaId, "fecha": fecha},
       options: Options(headers: headers),
     );
 
     if (response.statusCode == 200) {
-      // Este endpoint devuelve solo horas_disponibles
-      return List<String>.from(response.data['horas_disponibles'] ?? []);
+      final List<dynamic> horas = response.data['horas_disponibles'] ?? [];
+      return List<String>.from(horas);
     } else {
-      throw Exception("Error al obtener horarios de novedades");
+      throw Exception('Error al obtener horarios: ${response.data}');
     }
   }
 }

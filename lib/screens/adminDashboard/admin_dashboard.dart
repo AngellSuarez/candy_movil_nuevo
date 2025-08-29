@@ -12,6 +12,7 @@ import './widgets/tarjeta_servicios.dart';
 import './widgets/ganancias_grafica.dart';
 import '../../services/metricas/dashboard_repository.dart';
 import '../../services/auth/auth_service.dart'; // Importar el servicio de autenticación
+import './widgets/citas_tab.dart';
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({Key? key}) : super(key: key);
@@ -654,58 +655,10 @@ class _AdminDashboardState extends State<AdminDashboard>
   }
 
   Widget _buildAppointmentsTab() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          CustomIconWidget(
-            iconName: 'event',
-            color: AppTheme.lightTheme.colorScheme.primary,
-            size: 64,
-          ),
-          SizedBox(height: 2.h),
-          Text(
-            'Gestión de Citas',
-            style: AppTheme.lightTheme.textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          SizedBox(height: 1.h),
-          Text(
-            'Administra las citas del salón',
-            style: AppTheme.lightTheme.textTheme.bodyMedium?.copyWith(
-              color: AppTheme.lightTheme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          if (citasSemana.isNotEmpty) ...[
-            SizedBox(height: 2.h),
-            Text(
-              'Resumen semanal:',
-              style: AppTheme.lightTheme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            SizedBox(height: 2.h),
-            Text(
-              'Total citas hoy: $totalCitasHoy',
-              style: AppTheme.lightTheme.textTheme.bodyMedium,
-            ),
-            Text(
-              'Citas pendientes hoy: $citasPendientesHoy',
-              style: AppTheme.lightTheme.textTheme.bodyMedium?.copyWith(
-                color: citasPendientesHoy > 0 ? Colors.orange : Colors.green,
-              ),
-            ),
-          ],
-          SizedBox(height: 3.h),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pushNamed(context, '/appointment-booking-screen');
-            },
-            child: const Text('Nueva Cita'),
-          ),
-        ],
-      ),
+    return CitasTab(
+      totalCitasHoy: totalCitasHoy,
+      citasPendientesHoy: citasPendientesHoy,
+      onNuevaCita: () => Navigator.pushNamed(context, '/crear_cita'),
     );
   }
 

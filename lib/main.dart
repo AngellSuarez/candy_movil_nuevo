@@ -10,8 +10,9 @@ import 'screens/adminDashboard/admin_dashboard.dart';
 import 'screens/adminDashboard/novedades_admin.dart';
 import 'screens/novedades/crear_novedades.dart';
 import 'screens/manejoServicios/crear_servicio.dart';
-import 'screens/manejoServicios/editar_servicio.dart';
 import 'screens/manejoServicios/manejo_servicios.dart';
+import 'screens/creacion_cita/creacion_cita_screen.dart';
+import 'screens/creacion_cita/cita_detalle_admin.dart';
 
 void main() {
   runApp(const MyApp());
@@ -31,19 +32,55 @@ class MyApp extends StatelessWidget {
             title: 'CandySoft',
             theme: AppTheme.lightTheme,
             initialRoute: '/',
-            routes: {
-              '/': (context) => const LoginScreen(),
-              '/news-feed': (context) =>
-                  const PlaceholderScreen(title: 'News Feed'),
-              '/admin-dashboard': (context) => const AdminDashboard(),
-              '/cliente-dashboard': (context) =>
-                  const PlaceholderScreen(title: 'Cliente Dashboard'),
-              '/manicurista-dashboard': (context) =>
-                  const PlaceholderScreen(title: 'Manicurista Dashboard'),
-              '/novedades_admin': (_) => const NovedadesAdminPage(),
-              '/crear_novedad': (_) => const CrearNovedadPage(),
-              '/crear_servicio': (_) => const CrearServicioPage(),
-              '/servicios_admin': (_) => const ServiciosAdminPage(),
+            onGenerateRoute: (settings) {
+              switch (settings.name) {
+                case '/':
+                  return MaterialPageRoute(builder: (_) => const LoginScreen());
+                case '/news-feed':
+                  return MaterialPageRoute(
+                    builder: (_) => const PlaceholderScreen(title: 'News Feed'),
+                  );
+                case '/admin-dashboard':
+                  return MaterialPageRoute(
+                    builder: (_) => const AdminDashboard(),
+                  );
+                case '/cliente-dashboard':
+                  return MaterialPageRoute(
+                    builder: (_) =>
+                        const PlaceholderScreen(title: 'Cliente Dashboard'),
+                  );
+                case '/manicurista-dashboard':
+                  return MaterialPageRoute(
+                    builder: (_) =>
+                        const PlaceholderScreen(title: 'Manicurista Dashboard'),
+                  );
+                case '/novedades_admin':
+                  return MaterialPageRoute(
+                    builder: (_) => const NovedadesAdminPage(),
+                  );
+                case '/crear_novedad':
+                  return MaterialPageRoute(
+                    builder: (_) => const CrearNovedadPage(),
+                  );
+                case '/crear_servicio':
+                  return MaterialPageRoute(
+                    builder: (_) => const CrearServicioPage(),
+                  );
+                case '/servicios_admin':
+                  return MaterialPageRoute(
+                    builder: (_) => const ServiciosAdminPage(),
+                  );
+                case '/crear_cita': // <<<--- ESTE ES EL NUEVO CASE
+                  return MaterialPageRoute(
+                    builder: (_) => const CreacionCitaScreen(),
+                  );
+                case '/detalles_cita_admin':
+                  final citaId = settings.arguments as int; // ahora sí es int
+                  return MaterialPageRoute(
+                    builder: (_) => DetallesCitaPage(citaId: citaId),
+                  );
+              }
+              return null;
             },
           );
         },
