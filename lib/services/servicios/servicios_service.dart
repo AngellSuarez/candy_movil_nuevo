@@ -4,14 +4,14 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 class ServiciosService {
   final Dio _dio = Dio();
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
+
+  // Ajusta si tu base cambia; termina SIEMPRE con "/"
   final String baseUrl =
       'https://angelsuarez.pythonanywhere.com/api/servicio/servicio/';
 
-  Future<String?> _getToken() async {
-    return await _storage.read(key: 'access_token');
-  }
+  Future<String?> _getToken() async => _storage.read(key: 'access_token');
 
-  //obtener los servicios
+  // Obtener servicios (lista)
   Future<List<Map<String, dynamic>>> obtenerServicios() async {
     final token = await _getToken();
     final response = await _dio.get(
@@ -21,22 +21,22 @@ class ServiciosService {
     return List<Map<String, dynamic>>.from(response.data);
   }
 
-  //crear un servicio
+  // Crear servicio (multipart con imagen obligatoria)
   Future<void> crearServicio(
-    Map<String, dynamic> datos,
-    String pathImage,
+    Map<String, dynamic> data,
+    String? pathImagen,
   ) async {
+    final formData = FormData.fromMap(data);
     final token = await _getToken();
-    final formData = FormData.fromMap({
-      ...datos,
-      'imagen': await MultipartFile.fromFile(
-        pathImage,
-        filename: pathImage.split('/').last,
-      ),
-    });
 
-    final response = await _dio.post(
-      baseUrl,
+    if (pathImagen != null) {
+      formData.files.add(
+        MapEntry("imagen", await MultipartFile.fromFile(pathImagen)),
+      );
+    }
+
+    await _dio.post(
+      "$baseUrl",
       data: formData,
       options: Options(
         headers: {
@@ -45,18 +45,16 @@ class ServiciosService {
         },
       ),
     );
-    if (response.statusCode != 201) {
-      throw Exception('Error al crear el servicio: ${response.data}');
-    }
   }
 
-  //editar servicio
+  // Editar servicio (multipart; imagen opcional)
   Future<void> editarServicio(
     int id,
     Map<String, dynamic> datos, {
     String? pathImagen,
   }) async {
     final token = await _getToken();
+
     final formData = FormData.fromMap({
       ...datos,
       if (pathImagen != null)
@@ -67,7 +65,7 @@ class ServiciosService {
     });
 
     final response = await _dio.put(
-      'baseUrl$id/',
+      '$baseUrl$id/', // <- FIX: interpolación correcta
       data: formData,
       options: Options(
         headers: {
@@ -82,7 +80,7 @@ class ServiciosService {
     }
   }
 
-  //eliminar servicio
+  // Eliminar servicio
   Future<void> eliminarServicio(int id) async {
     final token = await _getToken();
     final response = await _dio.delete(
