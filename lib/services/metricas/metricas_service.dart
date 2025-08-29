@@ -177,11 +177,11 @@ class AdminService {
   }
 
   // Top abastecimientos (manicuristas)
-  Future<List<Map<String, dynamic>>> obtenerTopAbastecimientos() async {
+  Future<List<Map<String, dynamic>>> obtenerTopClientes() async {
     final response = await _handleApiCall<dynamic>(() async {
       final headers = await _getHeaders();
       return await _dio.get(
-        '/api/abastecimiento/abastecimientos/top_manicuristas/',
+        'https://angelsuarez.pythonanywhere.com/api/cita-venta/citas-venta/clientes-top/',
         options: Options(headers: headers),
       );
     });

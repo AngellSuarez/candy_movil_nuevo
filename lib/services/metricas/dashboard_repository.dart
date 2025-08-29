@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'metricas_service.dart';
+import '../novedades/novedades_manicurista_service.dart'; // para ManicuristasApi
 
 class DashboardRepository {
   final AdminService _adminService;
@@ -24,7 +25,7 @@ class DashboardRepository {
     }
 
     try {
-      // Fetch all data concurrently with timeout
+      // Fetch all data concurrently
       final results =
           await Future.wait([
             _adminService.obtenerGananciaSemanal(),
@@ -32,7 +33,8 @@ class DashboardRepository {
             _adminService.obtenerServiciosDia(),
             _adminService.obtenerServiciosMasVendidosMes(),
             _adminService.obtenerCitasSemana(),
-            _adminService.obtenerTopAbastecimientos(),
+            _adminService.obtenerTopClientes(),
+            ManicuristasApi().obtenerManicuristasActivos(),
           ]).timeout(
             const Duration(seconds: 20),
             onTimeout: () =>
@@ -45,7 +47,10 @@ class DashboardRepository {
         'serviciosDia': results[2],
         'serviciosPopulares': results[3],
         'citasSemana': results[4],
-        'topManicuristas': results[5],
+        'topClientes': results[5],
+        'manicuristasActivos': (results[6] is List)
+            ? (results[6] as List).length
+            : 0,
         'fetchTime': DateTime.now().toIso8601String(),
       };
 
@@ -55,13 +60,10 @@ class DashboardRepository {
 
       return DashboardData.fromJson(dashboardData);
     } catch (e) {
-      // If we have cached data, use it as fallback
       if (_cachedData != null) {
         debugPrint('Using cached data due to error: $e');
         return DashboardData.fromJson(_cachedData!);
       }
-
-      // Otherwise return empty data
       debugPrint('Returning empty data due to error: $e');
       return DashboardData.empty();
     }
@@ -87,7 +89,8 @@ class DashboardData {
   final List<Map<String, dynamic>> serviciosDia;
   final List<Map<String, dynamic>> serviciosPopulares;
   final List<Map<String, dynamic>> citasSemana;
-  final List<Map<String, dynamic>> topManicuristas;
+  final List<Map<String, dynamic>> topClientes;
+  final int manicuristasActivos;
   final DateTime? fetchTime;
 
   DashboardData({
@@ -96,9 +99,18 @@ class DashboardData {
     required this.serviciosDia,
     required this.serviciosPopulares,
     required this.citasSemana,
-    required this.topManicuristas,
+    required this.topClientes,
+    required this.manicuristasActivos,
     this.fetchTime,
   });
+
+  static int _extractInt(dynamic value) {
+    if (value == null) return 0;
+    if (value is int) return value;
+    if (value is String) return int.tryParse(value) ?? 0;
+    if (value is double) return value.toInt();
+    return 0;
+  }
 
   factory DashboardData.fromJson(Map<String, dynamic> json) {
     return DashboardData(
@@ -110,7 +122,8 @@ class DashboardData {
       serviciosDia: _extractList(json['serviciosDia']),
       serviciosPopulares: _extractList(json['serviciosPopulares']),
       citasSemana: _extractList(json['citasSemana']),
-      topManicuristas: _extractList(json['topManicuristas']),
+      topClientes: _extractList(json['topClientes']),
+      manicuristasActivos: _extractInt(json['manicuristasActivos']),
       fetchTime: json['fetchTime'] != null
           ? DateTime.tryParse(json['fetchTime'])
           : null,
@@ -124,7 +137,8 @@ class DashboardData {
       serviciosDia: [],
       serviciosPopulares: [],
       citasSemana: _getDefaultWeekData(),
-      topManicuristas: [],
+      topClientes: [],
+      manicuristasActivos: 0,
     );
   }
 
@@ -187,7 +201,8 @@ class DashboardData {
     return gananciaActual > 0 ||
         serviciosDia.isNotEmpty ||
         serviciosPopulares.isNotEmpty ||
-        topManicuristas.isNotEmpty;
+        topClientes.isNotEmpty ||
+        manicuristasActivos > 0;
   }
 
   String get lastUpdateText {

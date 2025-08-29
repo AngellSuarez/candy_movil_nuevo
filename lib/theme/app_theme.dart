@@ -6,8 +6,13 @@ class AppTheme {
   AppTheme._();
 
   // Warm Professional Color Palette
-  static const Color primaryLight = Color(0xFF8B5A83); // Sophisticated mauve
-  static const Color primaryVariantLight = Color(0xFF6B4563);
+  static const Color primaryLight = Color.fromARGB(
+    255,
+    213,
+    98,
+    194,
+  ); // Sophisticated mauve
+  static const Color primaryVariantLight = Color.fromARGB(255, 255, 167, 236);
   static const Color secondaryLight = Color(0xFFE8D5E3); // Soft supporting tint
   static const Color secondaryVariantLight = Color(0xFFD4C2D7);
   static const Color accentLight = Color(0xFFD4A574); // Warm gold

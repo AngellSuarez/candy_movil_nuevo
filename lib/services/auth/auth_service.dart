@@ -24,6 +24,8 @@ class AuthService {
         value: data['user_id'].toString(),
       );
       await secureStorage.write(key: 'rol', value: data['rol']);
+      await secureStorage.write(key: 'nombre', value: data['nombre']);
+      await secureStorage.write(key: 'apellido', value: data['apellido']);
 
       return {'success': true, 'data': data};
     } else {
