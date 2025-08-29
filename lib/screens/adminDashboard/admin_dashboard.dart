@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
+import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 import '../../core/app_exports.dart';
 import './widgets/tarjeta_citas.dart';
@@ -9,6 +11,7 @@ import './widgets/perfomance_manicuristas.dart';
 import './widgets/tarjeta_servicios.dart';
 import './widgets/ganancias_grafica.dart';
 import '../../services/metricas/dashboard_repository.dart';
+import '../../services/auth/auth_service.dart'; // Importar el servicio de autenticación
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({Key? key}) : super(key: key);
@@ -23,9 +26,10 @@ class _AdminDashboardState extends State<AdminDashboard>
   bool _isLoading = false;
   late DashboardRepository _repository;
   DashboardData? _dashboardData;
+  final AuthService _authService = AuthService(); // Instanciar AuthService
 
-  String adminName = "María González";
-  String currentDate = "Jueves, 28 de agosto de 2025";
+  String adminName = "Cargando...";
+  String currentDate = "Cargando...";
 
   // Computed values using repository data
   double get gananciaActual => _dashboardData?.gananciaActual ?? 0.0;
@@ -36,8 +40,9 @@ class _AdminDashboardState extends State<AdminDashboard>
       _dashboardData?.serviciosPopulares ?? [];
   List<Map<String, dynamic>> get citasSemana =>
       _dashboardData?.citasSemana ?? [];
-  List<Map<String, dynamic>> get topManicuristas =>
-      _dashboardData?.topManicuristas ?? [];
+  List<Map<String, dynamic>> get topClientes =>
+      _dashboardData?.topClientes ?? [];
+  int get manicuristasActivos => _dashboardData?.manicuristasActivos ?? 0;
 
   String get porcentajeCambio => _dashboardData?.porcentajeCambio ?? '+0%';
   int get totalCitasHoy => _dashboardData?.totalCitasHoy ?? 0;
@@ -48,7 +53,15 @@ class _AdminDashboardState extends State<AdminDashboard>
     super.initState();
     _tabController = TabController(length: 5, vsync: this);
     _repository = DashboardRepository();
-    _loadDashboardData();
+
+    Future.microtask(() async {
+      await initializeDateFormatting(
+        "es",
+        null,
+      ); // ✅ Inicializar locale español
+      await _loadAdminData();
+      await _loadDashboardData();
+    });
   }
 
   @override
@@ -56,6 +69,21 @@ class _AdminDashboardState extends State<AdminDashboard>
     _tabController.dispose();
     _repository.dispose();
     super.dispose();
+  }
+
+  // Nuevo método para cargar el nombre y la fecha
+  Future<void> _loadAdminData() async {
+    final nombre = await _authService.secureStorage.read(key: 'nombre');
+    final apellido = await _authService.secureStorage.read(key: 'apellido');
+
+    // Obtener la fecha actual y formatearla
+    final now = DateTime.now();
+    final formatter = DateFormat('EEEE, d \'de\' MMMM \'de\' yyyy', 'es_ES');
+
+    setState(() {
+      adminName = "${nombre ?? ''} ${apellido ?? ''}".trim();
+      currentDate = formatter.format(now);
+    });
   }
 
   Future<void> _loadDashboardData() async {
@@ -242,33 +270,6 @@ class _AdminDashboardState extends State<AdminDashboard>
               Row(
                 children: [
                   IconButton(
-                    onPressed: () {
-                      // Handle notifications
-                    },
-                    icon: Stack(
-                      children: [
-                        CustomIconWidget(
-                          iconName: 'notifications',
-                          color: AppTheme.lightTheme.colorScheme.onSurface,
-                          size: 24,
-                        ),
-                        if (citasPendientesHoy > 0)
-                          Positioned(
-                            right: 0,
-                            top: 0,
-                            child: Container(
-                              width: 8,
-                              height: 8,
-                              decoration: BoxDecoration(
-                                color: AppTheme.lightTheme.colorScheme.error,
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                  IconButton(
                     onPressed: () => _refreshDashboard(forceRefresh: true),
                     tooltip:
                         _dashboardData?.lastUpdateText ?? 'Actualizar datos',
@@ -378,22 +379,6 @@ class _AdminDashboardState extends State<AdminDashboard>
               children: [
                 Expanded(
                   child: DashboardMetricsCard(
-                    title: 'Citas Hoy',
-                    value: totalCitasHoy.toString(),
-                    subtitle: '$citasPendientesHoy pendientes',
-                    iconName: 'event',
-                    onTap: () {
-                      _tabController.animateTo(2);
-                    },
-                  ),
-                ),
-              ],
-            ),
-
-            Row(
-              children: [
-                Expanded(
-                  child: DashboardMetricsCard(
                     title: 'Servicios Populares',
                     value: serviciosPopulares.length.toString(),
                     subtitle: 'Este mes',
@@ -406,7 +391,7 @@ class _AdminDashboardState extends State<AdminDashboard>
                 Expanded(
                   child: DashboardMetricsCard(
                     title: 'Personal Activo',
-                    value: topManicuristas.length.toString(),
+                    value: manicuristasActivos.toString(),
                     subtitle: 'Manicuristas',
                     iconName: 'people',
                     backgroundColor: AppTheme.lightTheme.colorScheme.secondary
@@ -436,7 +421,7 @@ class _AdminDashboardState extends State<AdminDashboard>
               description: 'Crear un nuevo servicio para el salón',
               iconName: 'add_circle',
               onTap: () {
-                Navigator.pushNamed(context, '/service-management-screen');
+                Navigator.pushNamed(context, '/servicios_admin');
               },
             ),
 
@@ -549,7 +534,7 @@ class _AdminDashboardState extends State<AdminDashboard>
           'clientName': _getDaySpanish(dayName),
           'services': ['$pendiente Pendientes', '$terminada Terminadas'],
           'time': '${pendiente + terminada} citas',
-          'status': pendiente > 0 ? 'Pendiente' : 'Confirmada',
+          'status': pendiente > 0 ? 'Pendiente' : 'Terminada',
           'manicurist': 'Varios',
         });
       }
@@ -588,14 +573,13 @@ class _AdminDashboardState extends State<AdminDashboard>
   }
 
   Widget _buildStaffPerformanceCard() {
-    final staff = topManicuristas.map((manicurista) {
+    final staff = topClientes.map((cliente) {
       return {
-        'id': manicurista['nombre'],
-        'name': manicurista['nombre'] as String,
-        'completedAppointments': manicurista['pedidos'],
-        'rating':
-            4.5 + (manicurista['pedidos'] as int) * 0.1, // Simulate rating
-        'performance': _getPerformanceLevel(manicurista['pedidos'] as int),
+        'id': cliente['nombre'],
+        'name': cliente['nombre'] as String,
+        'completedAppointments': cliente['citas'],
+        'rating': 4.5, // fijo o ajusta según lógica
+        'performance': _getPerformanceLevel(cliente['citas'] as int),
         'avatar': null,
       };
     }).toList();
@@ -603,7 +587,7 @@ class _AdminDashboardState extends State<AdminDashboard>
     return StaffPerformanceCard(
       staffPerformance: staff,
       onViewAll: () {
-        // Navigate to staff details
+        // Navegar a detalle clientes
       },
     );
   }
@@ -638,47 +622,31 @@ class _AdminDashboardState extends State<AdminDashboard>
             color: AppTheme.lightTheme.colorScheme.primary,
             size: 64,
           ),
-          SizedBox(height: 2.h),
+          SizedBox(height: 16),
           Text(
-            'Gestión de Servicios',
+            'Servicios',
             style: AppTheme.lightTheme.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.w600,
             ),
           ),
-          SizedBox(height: 1.h),
+          SizedBox(height: 8),
           Text(
-            'Administra los servicios del salón',
+            'Gestiona y administra los servicios del salón',
             style: AppTheme.lightTheme.textTheme.bodyMedium?.copyWith(
               color: AppTheme.lightTheme.colorScheme.onSurfaceVariant,
             ),
           ),
-          if (serviciosPopulares.isNotEmpty) ...[
-            SizedBox(height: 2.h),
-            Text(
-              'Servicios más vendidos este mes:',
-              style: AppTheme.lightTheme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            SizedBox(height: 1.h),
-            ...serviciosPopulares
-                .take(3)
-                .map(
-                  (servicio) => Padding(
-                    padding: EdgeInsets.symmetric(vertical: 0.5.h),
-                    child: Text(
-                      '• ${servicio['name']}: ${servicio['ventas']} ventas',
-                      style: AppTheme.lightTheme.textTheme.bodyMedium,
-                    ),
-                  ),
-                ),
-          ],
-          SizedBox(height: 3.h),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pushNamed(context, '/service-management-screen');
-            },
-            child: const Text('Ir a Servicios'),
+          SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: () => Navigator.pushNamed(context, '/servicios_admin'),
+            icon: const Icon(Icons.list_alt),
+            label: const Text('Ver Servicios'),
+          ),
+          SizedBox(height: 12),
+          ElevatedButton.icon(
+            onPressed: () => Navigator.pushNamed(context, '/crear_servicio'),
+            icon: const Icon(Icons.add_circle_outline),
+            label: const Text('Crear Servicio'),
           ),
         ],
       ),
@@ -792,15 +760,17 @@ class _AdminDashboardState extends State<AdminDashboard>
             height: 24.w,
             decoration: BoxDecoration(
               color: AppTheme.lightTheme.colorScheme.primary.withValues(
-                alpha: 0.1,
+                alpha: 0.4,
               ),
               borderRadius: BorderRadius.circular(50),
             ),
             child: Center(
               child: Text(
-                adminName.substring(0, 1).toUpperCase(),
+                adminName.isNotEmpty
+                    ? adminName.substring(0, 1).toUpperCase()
+                    : '',
                 style: AppTheme.lightTheme.textTheme.headlineLarge?.copyWith(
-                  color: AppTheme.lightTheme.colorScheme.primary,
+                  color: AppTheme.lightTheme.colorScheme.onSecondary,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -833,8 +803,29 @@ class _AdminDashboardState extends State<AdminDashboard>
           ],
           SizedBox(height: 4.h),
           ElevatedButton(
-            onPressed: () {
-              Navigator.pushReplacementNamed(context, '/registration-screen');
+            onPressed: () async {
+              final authService = AuthService();
+              final result = await authService.logout();
+
+              if (result['success']) {
+                if (mounted) {
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    '/', // Asegúrate de que esta sea la ruta de tu pantalla de inicio de sesión
+                    (route) => false,
+                  );
+                }
+              } else {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Error al cerrar sesión: ${result['message']}',
+                      ),
+                    ),
+                  );
+                }
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.lightTheme.colorScheme.error,

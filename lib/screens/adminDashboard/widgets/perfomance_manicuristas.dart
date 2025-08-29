@@ -40,23 +40,12 @@ class StaffPerformanceCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Rendimiento del Personal',
+                  'Clientes destacados',
                   style: AppTheme.lightTheme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: AppTheme.lightTheme.colorScheme.onSurface,
                   ),
                 ),
-                if (onViewAll != null)
-                  GestureDetector(
-                    onTap: onViewAll,
-                    child: Text(
-                      'Ver detalles',
-                      style: AppTheme.lightTheme.textTheme.bodySmall?.copyWith(
-                        color: AppTheme.lightTheme.colorScheme.primary,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
               ],
             ),
           ),

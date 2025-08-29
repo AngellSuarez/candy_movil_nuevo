@@ -227,7 +227,7 @@ class AppointmentOverviewCard extends StatelessWidget {
 
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
-      case 'confirmada':
+      case 'terminada':
         return const Color(0xFF27AE60);
       case 'pendiente':
         return const Color(0xFFF39C12);

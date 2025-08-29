@@ -175,13 +175,6 @@ class ServicesOverviewCard extends StatelessWidget {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              Text(
-                                service['price'] as String,
-                                style: AppTheme.dataTextStyleBold(
-                                  isLight: true,
-                                  fontSize: 14,
-                                ),
-                              ),
                               SizedBox(height: 0.5.h),
                               Container(
                                 width: 8.w,
