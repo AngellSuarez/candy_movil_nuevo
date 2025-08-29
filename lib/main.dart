@@ -6,6 +6,10 @@ import 'providers/auth_provider.dart';
 import 'screens/auth/login/login_screen.dart';
 import 'theme/app_theme.dart';
 
+import 'screens/adminDashboard/admin_dashboard.dart';
+import 'screens/adminDashboard/novedades_admin.dart';
+import 'screens/novedades/crear_novedades.dart';
+
 void main() {
   runApp(const MyApp());
 }
@@ -28,6 +32,13 @@ class MyApp extends StatelessWidget {
               '/': (context) => const LoginScreen(),
               '/news-feed': (context) =>
                   const PlaceholderScreen(title: 'News Feed'),
+              '/admin-dashboard': (context) => const AdminDashboard(),
+              '/cliente-dashboard': (context) =>
+                  const PlaceholderScreen(title: 'Cliente Dashboard'),
+              '/manicurista-dashboard': (context) =>
+                  const PlaceholderScreen(title: 'Manicurista Dashboard'),
+              '/novedades_admin': (_) => const NovedadesAdminPage(),
+              '/crear_novedad': (_) => const CrearNovedadPage(),
             },
           );
         },
