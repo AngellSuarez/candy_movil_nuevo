@@ -276,15 +276,15 @@ class _CitasTabState extends State<CitasTab> {
                   final estado = (c['estado_nombre'] ?? '')
                       .toString()
                       .toLowerCase();
-                  final estadoColor = estado == 'Cancelada'
+                  final estadoColor = estado == 'cancelada'
                       ? theme.colorScheme.error
-                      : (estado == 'Pendiente'
+                      : (estado == 'pendiente'
                             ? Colors.orange
                             : theme.colorScheme.primary);
 
                   // >>> NUEVO: lógica de habilitación del botón cancelar
 
-                  final canCancelar = estado == 'Pendiente';
+                  final canCancelar = estado == 'pendiente';
                   // <<<
 
                   return Card(
@@ -359,15 +359,17 @@ class _CitasTabState extends State<CitasTab> {
                                   ),
 
                                   // >>> CAMBIO: botón siempre visible pero habilitado SOLO si canCancelar
-                                  IconButton(
-                                    tooltip: 'Cancelar cita',
-                                    icon: const Icon(
-                                      Icons.cancel,
-                                      color: Colors.red,
+                                  if (canCancelar)
+                                    IconButton(
+                                      tooltip: 'Cancelar cita',
+                                      icon: const Icon(
+                                        Icons.cancel,
+                                        color: Colors.red,
+                                      ),
+                                      onPressed: canCancelar
+                                          ? () => _cancelarCita(c['id'] as int)
+                                          : null,
                                     ),
-                                    onPressed: () =>
-                                        _cancelarCita(c['id'] as int),
-                                  ),
 
                                   // <<<
                                 ],

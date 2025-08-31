@@ -182,7 +182,7 @@ class _DetallesCitaPageState extends State<DetallesCitaPage> {
 
   Color _getEstadoColor(String estado) {
     switch (estado.toLowerCase()) {
-      case "activo":
+      case "en proceso":
         return Colors.green.shade300;
       case "inactivo":
         return Colors.grey.shade400;

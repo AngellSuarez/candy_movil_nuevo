@@ -61,6 +61,13 @@ class _NovedadesManicuristaScreenState
                         return Card(
                           margin: const EdgeInsets.all(8),
                           child: ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: Colors.pink.shade300,
+                              child: const Icon(
+                                Icons.event_note,
+                                color: Colors.white,
+                              ),
+                            ),
                             title: Text("Fecha: ${n['Fecha']}"),
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
