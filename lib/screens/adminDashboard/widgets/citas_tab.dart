@@ -283,12 +283,8 @@ class _CitasTabState extends State<CitasTab> {
                             : theme.colorScheme.primary);
 
                   // >>> NUEVO: lógica de habilitación del botón cancelar
-                  final hoyStr = DateFormat(
-                    'yyyy-MM-dd',
-                  ).format(DateTime.now());
-                  final fechaCitaStr = (c['Fecha'] ?? '').toString();
-                  final canCancelar =
-                      estado == 'Pendiente' && fechaCitaStr != hoyStr;
+
+                  final canCancelar = estado == 'Pendiente';
                   // <<<
 
                   return Card(

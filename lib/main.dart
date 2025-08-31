@@ -14,6 +14,9 @@ import 'screens/manejoServicios/manejo_servicios.dart';
 import 'screens/creacion_cita/creacion_cita_screen.dart';
 import 'screens/creacion_cita/cita_detalle_admin.dart';
 
+import 'screens/clienteDashboard/cliente_dashboard.dart';
+import 'screens/manicuristaDashboard/manicurista_dashboard.dart';
+
 void main() {
   runApp(const MyApp());
 }
@@ -46,13 +49,11 @@ class MyApp extends StatelessWidget {
                   );
                 case '/cliente-dashboard':
                   return MaterialPageRoute(
-                    builder: (_) =>
-                        const PlaceholderScreen(title: 'Cliente Dashboard'),
+                    builder: (_) => const ClienteDashboard(),
                   );
                 case '/manicurista-dashboard':
                   return MaterialPageRoute(
-                    builder: (_) =>
-                        const PlaceholderScreen(title: 'Manicurista Dashboard'),
+                    builder: (_) => const ManicuristaDashboard(),
                   );
                 case '/novedades_admin':
                   return MaterialPageRoute(

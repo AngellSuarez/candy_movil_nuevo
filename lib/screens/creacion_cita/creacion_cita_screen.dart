@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../services/citas/citas_service.dart';
 import '../../services/servicios/servicios_service.dart';
@@ -36,7 +37,26 @@ class _CrearCitaPageState extends State<CreacionCitaScreen> {
     _cargarServicios();
     _cargarClientes();
     _cargarManicuristas();
+    _cargarDatosUsuario();
   }
+
+  Future<void> _cargarDatosUsuario() async {
+    final storage = const FlutterSecureStorage();
+    final rol = await storage.read(key: 'rol');
+    final userIdStr = await storage.read(key: 'user_id');
+    final nombre = await storage.read(key: 'nombre');
+
+    if (rol == 'Cliente' && userIdStr != null) {
+      setState(() {
+        clienteId = int.tryParse(userIdStr);
+        _nombreCliente = nombre ?? "Cliente";
+        _esCliente = true;
+      });
+    }
+  }
+
+  bool _esCliente = false;
+  String _nombreCliente = "";
 
   @override
   void dispose() {
@@ -209,22 +229,32 @@ class _CrearCitaPageState extends State<CreacionCitaScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    DropdownButtonFormField<int>(
-                      decoration: const InputDecoration(
-                        labelText: "Cliente",
-                        prefixIcon: Icon(Icons.person),
-                      ),
-                      value: clienteId,
-                      items: clientes.map((cliente) {
-                        return DropdownMenuItem<int>(
-                          value: cliente['usuario_id'],
-                          child: Text(cliente['nombre']),
-                        );
-                      }).toList(),
-                      onChanged: (value) => setState(() => clienteId = value),
-                      validator: (value) =>
-                          value == null ? "Selecciona un cliente" : null,
-                    ),
+                    _esCliente
+                        ? TextFormField(
+                            initialValue: _nombreCliente,
+                            decoration: const InputDecoration(
+                              labelText: "Cliente",
+                              prefixIcon: Icon(Icons.person),
+                            ),
+                            enabled: false,
+                          )
+                        : DropdownButtonFormField<int>(
+                            decoration: const InputDecoration(
+                              labelText: "Cliente",
+                              prefixIcon: Icon(Icons.person),
+                            ),
+                            value: clienteId,
+                            items: clientes.map((cliente) {
+                              return DropdownMenuItem<int>(
+                                value: cliente['usuario_id'],
+                                child: Text(cliente['nombre']),
+                              );
+                            }).toList(),
+                            onChanged: (value) =>
+                                setState(() => clienteId = value),
+                            validator: (value) =>
+                                value == null ? "Selecciona un cliente" : null,
+                          ),
                     const SizedBox(height: 16),
 
                     DropdownButtonFormField<int>(

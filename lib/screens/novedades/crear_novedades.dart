@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../services/novedades/novedades_manicurista_service.dart';
 
 class CrearNovedadPage extends StatefulWidget {
@@ -17,20 +18,59 @@ class _CrearNovedadPageState extends State<CrearNovedadPage> {
 
   final NovedadesApi _novedadesApi = NovedadesApi();
   final ManicuristasApi _manicuristasApi = ManicuristasApi();
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   List<Map<String, dynamic>> _manicuristas = [];
   Map<String, dynamic>? _manicuristaSel;
   bool _enviando = false;
+  String? _rol;
 
   @override
   void initState() {
     super.initState();
-    _cargarManicuristas();
+    _cargarDatos();
   }
 
-  Future<void> _cargarManicuristas() async {
-    final list = await _manicuristasApi.obtenerManicuristasActivos();
-    setState(() => _manicuristas = list);
+  Future<void> _cargarDatos() async {
+    final rol = await _storage.read(key: "rol");
+    final userIdStr = await _storage.read(key: "user_id");
+
+    if (!mounted) return;
+
+    setState(() {
+      _rol = rol;
+    });
+
+    if (rol?.toLowerCase() == "manicurista" && userIdStr != null) {
+      try {
+        final userId = int.parse(userIdStr);
+        final manicuristas = await _manicuristasApi
+            .obtenerManicuristasActivos();
+
+        final manicuristaSel = manicuristas.firstWhere(
+          (m) => m['usuario_id'] == userId,
+          orElse: () => throw Exception('Manicurista no encontrado'),
+        );
+
+        setState(() {
+          _manicuristas = manicuristas;
+          _manicuristaSel = manicuristaSel;
+        });
+      } catch (e) {
+        // Manejar el error, por ejemplo, mostrar un mensaje.
+        print("Error al cargar datos del manicurista: $e");
+      }
+    } else {
+      try {
+        final manicuristas = await _manicuristasApi
+            .obtenerManicuristasActivos();
+        setState(() {
+          _manicuristas = manicuristas;
+        });
+      } catch (e) {
+        print("Error al cargar lista de manicuristas: $e");
+      }
+    }
   }
 
   Future<void> _guardar() async {
@@ -61,6 +101,8 @@ class _CrearNovedadPageState extends State<CrearNovedadPage> {
 
   @override
   Widget build(BuildContext context) {
+    final esManicurista = _rol?.toLowerCase() == "manicurista";
+
     return Scaffold(
       appBar: AppBar(title: const Text("Crear Novedad")),
       body: SingleChildScrollView(
@@ -69,24 +111,27 @@ class _CrearNovedadPageState extends State<CrearNovedadPage> {
           key: _formKey,
           child: Column(
             children: [
-              DropdownButtonFormField<Map<String, dynamic>>(
-                value: _manicuristaSel,
-                decoration: const InputDecoration(
-                  labelText: "Manicurista",
-                  prefixIcon: Icon(Icons.person),
-                  border: OutlineInputBorder(),
-                ),
-                items: _manicuristas.map((m) {
-                  return DropdownMenuItem(
-                    value: m,
-                    child: Text("${m['nombre']} ${m['apellido']}"),
-                  );
-                }).toList(),
-                onChanged: (val) => setState(() => _manicuristaSel = val),
-                validator: (val) =>
-                    val == null ? "Selecciona un manicurista" : null,
-              ),
+              esManicurista
+                  ? const SizedBox.shrink() // Oculta el widget si es manicurista
+                  : DropdownButtonFormField<Map<String, dynamic>>(
+                      value: _manicuristaSel,
+                      decoration: const InputDecoration(
+                        labelText: "Manicurista",
+                        prefixIcon: Icon(Icons.person),
+                        border: OutlineInputBorder(),
+                      ),
+                      items: _manicuristas.map((m) {
+                        return DropdownMenuItem(
+                          value: m,
+                          child: Text("${m['nombre']} ${m['apellido']}"),
+                        );
+                      }).toList(),
+                      onChanged: (val) => setState(() => _manicuristaSel = val),
+                      validator: (val) =>
+                          val == null ? "Selecciona un manicurista" : null,
+                    ),
               const SizedBox(height: 16),
+              // ⬇️ siguen los campos ya existentes
               TextFormField(
                 controller: _fechaCtrl,
                 decoration: const InputDecoration(
@@ -99,8 +144,7 @@ class _CrearNovedadPageState extends State<CrearNovedadPage> {
                   final date = await showDatePicker(
                     context: context,
                     initialDate: DateTime.now(),
-                    firstDate:
-                        DateTime.now(), // 🔒 aquí bloqueas todo lo anterior a HOY
+                    firstDate: DateTime.now(),
                     lastDate: DateTime(2100),
                   );
 
@@ -125,11 +169,6 @@ class _CrearNovedadPageState extends State<CrearNovedadPage> {
                     initialTime: TimeOfDay.now(),
                   );
                   if (picked != null) {
-                    final formatted = picked.format(
-                      context,
-                    ); // ejemplo: 9:00 AM
-                    final parts = formatted.split(" ");
-                    // convierto a 24h y HH:mm:ss
                     final time =
                         "${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}:00";
                     _entradaCtrl.text = time;
@@ -145,7 +184,7 @@ class _CrearNovedadPageState extends State<CrearNovedadPage> {
                 readOnly: true,
                 decoration: const InputDecoration(
                   labelText: "Hora de Salida",
-                  prefixIcon: Icon(Icons.login),
+                  prefixIcon: Icon(Icons.logout),
                   border: OutlineInputBorder(),
                 ),
                 onTap: () async {
@@ -154,11 +193,6 @@ class _CrearNovedadPageState extends State<CrearNovedadPage> {
                     initialTime: TimeOfDay.now(),
                   );
                   if (picked != null) {
-                    final formatted = picked.format(
-                      context,
-                    ); // ejemplo: 9:00 AM
-                    final parts = formatted.split(" ");
-                    // convierto a 24h y HH:mm:ss
                     final time =
                         "${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}:00";
                     _salidaCtrl.text = time;

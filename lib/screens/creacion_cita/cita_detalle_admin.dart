@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../services/citas/citas_service.dart';
 import '../../services/citas/estados_citas_services.dart';
@@ -14,14 +15,23 @@ class DetallesCitaPage extends StatefulWidget {
 
 class _DetallesCitaPageState extends State<DetallesCitaPage> {
   Map<String, dynamic>? cita;
-  List<Map<String, dynamic>> _servicios =
-      []; // Nueva variable de estado para los servicios
+  List<Map<String, dynamic>> _servicios = [];
   bool loading = true;
+  String rolUsuario = "Cliente"; // valor por defecto
 
   @override
   void initState() {
     super.initState();
+    _loadUserRole();
     _loadCita();
+  }
+
+  Future<void> _loadUserRole() async {
+    const storage = FlutterSecureStorage();
+    final rol = await storage.read(key: "rol");
+    if (mounted) {
+      setState(() => rolUsuario = rol ?? "Cliente");
+    }
   }
 
   Future<void> _loadCita() async {
@@ -33,7 +43,7 @@ class _DetallesCitaPageState extends State<DetallesCitaPage> {
       if (!mounted) return;
       setState(() {
         cita = data;
-        _servicios = serviciosData; // Almacenamos los servicios obtenidos
+        _servicios = serviciosData;
         loading = false;
       });
     } catch (e) {
@@ -120,35 +130,39 @@ class _DetallesCitaPageState extends State<DetallesCitaPage> {
               "Servicios de la cita:",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-            // Iterar y mostrar los servicios
-            if (_servicios
-                .isNotEmpty) // Ahora usamos la nueva variable _servicios
+            if (_servicios.isNotEmpty)
               ..._servicios.map(
                 (srv) => ListTile(
                   title: Text(srv['servicio_nombre'] ?? 'Sin nombre'),
                   subtitle: Text("\$${srv['subtotal'] ?? '0'}"),
                 ),
-              ),
-            if (_servicios.isEmpty)
+              )
+            else
               const ListTile(
                 title: Text("No hay servicios asociados a esta cita."),
               ),
             const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.check),
-                  label: const Text("Finalizar"),
-                  onPressed: () => _cambiarEstado("finalizada"),
-                ),
-                OutlinedButton.icon(
-                  icon: const Icon(Icons.cancel),
-                  label: const Text("Cancelar"),
-                  onPressed: () => _cambiarEstado("cancelada"),
-                ),
-              ],
-            ),
+
+            // ✅ Mostrar botones SOLO si el usuario no es cliente
+            // ✅ Mostrar botones SOLO si el usuario no es cliente NI manicurista
+            if (rolUsuario != "Cliente" &&
+                rolUsuario != "Manicurista" &&
+                estado.toLowerCase() == "pendiente")
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.check),
+                    label: const Text("Finalizar"),
+                    onPressed: () => _cambiarEstado("finalizada"),
+                  ),
+                  OutlinedButton.icon(
+                    icon: const Icon(Icons.cancel),
+                    label: const Text("Cancelar"),
+                    onPressed: () => _cambiarEstado("cancelada"),
+                  ),
+                ],
+              ),
           ],
         ),
       ),
@@ -178,6 +192,8 @@ class _DetallesCitaPageState extends State<DetallesCitaPage> {
         return Colors.orange.shade300;
       case "finalizada":
         return Colors.blue.shade300;
+      case "pendiente":
+        return Colors.amber.shade400;
       default:
         return Colors.grey;
     }
